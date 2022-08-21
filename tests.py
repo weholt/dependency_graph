@@ -266,25 +266,6 @@ class PizzaTest(unittest.TestCase):
         with self.assertRaises(RequirementNotMetException):
             dg.start()
 
-    def _test_list(self):
-        from typing import List, Type
-
-        class Product:
-            pass
-
-        class Food(Product):
-            pass
-
-        class Drink(Product):
-            pass
-
-        class ShoppingBasket:
-            def __init__(self, *items: Type[Product]):
-                self.items = items
-
-        basket = ShoppingBasket(Food, Drink)
-        print(basket.items)
-
 
 if __name__ == '__main__':
     unittest.main()
