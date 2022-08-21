@@ -40,9 +40,9 @@ class ProducerBase(ABC):
         pass
 
     def validate_requirements(
-        self, produced_componentss: Iterable[ComponentBase]
+        self, produced_components: Iterable[ComponentBase]
     ) -> None:
-        provided_classes = [p.__class__ for p in produced_componentss]
+        provided_classes = [p.__class__ for p in produced_components]
         missing_requirements = []
         for required in self.required_components:
             if required not in provided_classes:
@@ -58,9 +58,9 @@ class ProducerBase(ABC):
         available_components: Iterable[ComponentBase],
         target_class: Type[ComponentBase],
     ) -> Iterable[ComponentBase]:
-        for product in available_components:
-            if isinstance(product, target_class):
-                yield product
+        for component in available_components:
+            if isinstance(component, target_class):
+                yield component
 
     def __str__(self) -> str:
         """
@@ -170,9 +170,9 @@ class DependencyGraph:
     def filter_components_for_producer(
         self, producer: ProducerBase, components: Iterable[ComponentBase]
     ) -> Iterable[ComponentBase]:
-        for product in components:
-            if product.__class__ in producer.required_components:
-                yield product
+        for component in components:
+            if component.__class__ in producer.required_components:
+                yield component
 
     def start(self, *args, **kwargs):
         """ """
