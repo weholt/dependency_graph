@@ -18,9 +18,9 @@ class ProductBase(ABC):
 class ProducerBase(ABC):
     """ """
 
-    required_components: Type[ComponentBase]
-    produced_components: Type[ComponentBase]
-    products: Type[ProductBase]
+    required_components: List[ComponentBase]
+    produced_components: List[ComponentBase]
+    products: List[ProductBase]
 
     def __init__(self):
         """ """
