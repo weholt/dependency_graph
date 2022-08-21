@@ -1,7 +1,11 @@
 import unittest
 
-from dependency_graph import (DependencyGraph, ProducerBase, ProductBase,
-                              RequirementNotMetException)
+from dependency_graph import (
+    DependencyGraph,
+    ProducerBase,
+    ProductBase,
+    RequirementNotMetException,
+)
 
 
 class Flour(ProductBase):
@@ -95,12 +99,12 @@ class TestProducerBase(ProducerBase):
         print(
             "What I require: %s"
             % (
-                self.required_component
-                and self._parse_products(self.required_component)
+                self.required_components
+                and self._parse_products(self.required_components)
                 or "Nothing"
             )
         )
-        print("What I provide: %s" % self._parse_products(self.provided_component))
+        print("What I provide: %s" % self._parse_products(self.produced_components))
 
 
 class IngridientsProducer(TestProducerBase):
@@ -108,8 +112,8 @@ class IngridientsProducer(TestProducerBase):
     Take all the ingridents out of the fridge
     """
 
-    required_component = []
-    provided_component = [
+    required_components = []
+    produced_components = [
         Flour,
         Water,
         Yeast,
@@ -125,7 +129,7 @@ class IngridientsProducer(TestProducerBase):
     def produce(self, products, *args, **kwargs):
         """ """
         self.info()
-        for product in self.provided_component:
+        for product in self.produced_components:
             yield product()
 
 
@@ -134,8 +138,8 @@ class DoughProducer(TestProducerBase):
     Make the dough
     """
 
-    required_component = [Flour, Water, Yeast, Salt]
-    provided_component = [Dough]
+    required_components = [Flour, Water, Yeast, Salt]
+    produced_components = [Dough]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -148,8 +152,8 @@ class PineappleProducer(TestProducerBase):
     I bring the pineapple, which nobody wants
     """
 
-    required_component = []
-    provided_component = [Pineapple]
+    required_components = []
+    produced_components = [Pineapple]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -160,8 +164,8 @@ class PineappleProducer(TestProducerBase):
 class ToppingsProducer(TestProducerBase):
     """Make the topping"""
 
-    required_component = [Dough, Onion, Pepperoni, Peppers, TomatoSauce, Mushrooms]
-    provided_component = [Toppings]
+    required_components = [Dough, Onion, Pepperoni, Peppers, TomatoSauce, Mushrooms]
+    produced_components = [Toppings]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -171,8 +175,8 @@ class ToppingsProducer(TestProducerBase):
 
 class CheeseProducer(TestProducerBase):
     "Provide some cheese."
-    required_component = []
-    provided_component = [Cheese]
+    required_components = []
+    produced_components = [Cheese]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -182,8 +186,8 @@ class CheeseProducer(TestProducerBase):
 
 class OvenProducer(TestProducerBase):
     "Turning on the oven."
-    required_component = []
-    provided_component = [Oven]
+    required_components = []
+    produced_components = [Oven]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -193,8 +197,8 @@ class OvenProducer(TestProducerBase):
 
 class UncookedPizzaProducer(TestProducerBase):
     "Putting everything together"
-    required_component = [Toppings, TomatoSauce, Cheese, Dough]
-    provided_component = [UncookedPizza]
+    required_components = [Toppings, TomatoSauce, Cheese, Dough]
+    produced_components = [UncookedPizza]
 
     def produce(self, products, *args, **kwargs):
         """ """
@@ -204,7 +208,8 @@ class UncookedPizzaProducer(TestProducerBase):
 
 class PizzaProducer(TestProducerBase):
     "Cooking the pizza."
-    required_component = [UncookedPizza, Oven]
+    required_components = [UncookedPizza, Oven]
+    produced_components = [Pizza]
     products = [Pizza]
 
     def produce(self, products, *args, **kwargs):
@@ -267,5 +272,5 @@ class PizzaTest(unittest.TestCase):
             dg.start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

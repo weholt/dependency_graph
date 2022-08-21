@@ -5,40 +5,46 @@ from typing import Iterable, List, Type
 GRAY, BLACK = 0, 1
 
 
-class ProductBase(ABC):
+class ComponentBase(ABC):
     """ """
 
     pass
 
 
+class ProductBase(ABC):
+    """ """
+
+
 class ProducerBase(ABC):
     """ """
 
-    required_component: List[ProductBase] = []
-    provided_component: List[ProductBase] = []
-    products: List[ProductBase] = []
+    required_components: Type[ComponentBase]
+    produced_components: Type[ComponentBase]
+    products: Type[ProductBase]
 
     def __init__(self):
         """ """
         pass
 
     def _internal_produce(
-        self, products: Type[ProductBase], *args, **kwargs
-    ) -> Iterable[ProductBase]:
-        self.validate_requirements(products)
-        return self.produce(products, *args, **kwargs)
+        self, components: Iterable[ComponentBase], *args, **kwargs
+    ) -> Iterable[ComponentBase]:
+        self.validate_requirements(components)
+        return self.produce(components, *args, **kwargs)
 
     @abstractmethod
     def produce(
-        self, products: Type[ProductBase], *args, **kwargs
-    ) -> List[ProductBase]:
+        self, components: Iterable[ComponentBase], *args, **kwargs
+    ) -> List[ComponentBase]:
         """ """
-        raise Exception("Implement in subclass")
+        pass
 
-    def validate_requirements(self, provided_components: Iterable[ProductBase]) -> None:
-        provided_classes = [p.__class__ for p in provided_components]
+    def validate_requirements(
+        self, produced_componentss: Iterable[ComponentBase]
+    ) -> None:
+        provided_classes = [p.__class__ for p in produced_componentss]
         missing_requirements = []
-        for required in self.required_component:
+        for required in self.required_components:
             if required not in provided_classes:
                 missing_requirements.append(required)
         if missing_requirements:
@@ -47,10 +53,12 @@ class ProducerBase(ABC):
     def can_produce(self) -> bool:
         return True
 
-    def filter_products(
-        self, available_products: Iterable[ProductBase], target_class: Type[ProductBase]
-    ) -> Iterable[ProductBase]:
-        for product in available_products:
+    def filter_components(
+        self,
+        available_components: Iterable[ComponentBase],
+        target_class: Type[ComponentBase],
+    ) -> Iterable[ComponentBase]:
+        for product in available_components:
             if isinstance(product, target_class):
                 yield product
 
@@ -68,7 +76,7 @@ class RequirementNotMetException(Exception):
     def __init__(
         self,
         producer: ProducerBase,
-        missing_requirements: List[ProductBase],
+        missing_requirements: List[ComponentBase],
         *args,
         **kwargs,
     ):
@@ -139,8 +147,8 @@ class DependencyGraph:
         in_graph = {}
 
         for producer in producers or self.producers:
-            out_graph[producer] = producer.provided_component
-            in_graph[producer] = producer.required_component
+            out_graph[producer] = producer.produced_components
+            in_graph[producer] = producer.required_components
 
         for in_ in in_graph:
             graph[in_] = []
@@ -159,46 +167,49 @@ class DependencyGraph:
         """
         return self.get_sorted_producers()
 
-    def filter_products_for_producer(
-        self, producer: ProducerBase, products: Iterable[ProductBase]
-    ) -> Iterable[ProductBase]:
-        for product in products:
-            if product.__class__ in producer.required_component:
+    def filter_components_for_producer(
+        self, producer: ProducerBase, components: Iterable[ComponentBase]
+    ) -> Iterable[ComponentBase]:
+        for product in components:
+            if product.__class__ in producer.required_components:
                 yield product
 
     def start(self, *args, **kwargs):
         """ """
-        produced_products = []
+        produced_components = []
         for producer_class in self.get_producers():
             producer = producer_class()  # type: ignore
             if not producer.can_produce():
                 continue
 
-            produced_products.extend(
+            produced_components.extend(
                 producer._internal_produce(
-                    produced_products,
+                    produced_components,
                     *args,
                     **kwargs,
                 )
             )
 
         if self.verbose:
-            print("Produced: %s" % produced_products)
-            biproducts = self.find_biproducts(produced_products)
-            if biproducts:
-                print("Bi-products: %s" % biproducts)
+            print("Produced: %s" % produced_components)
+            bicomponents = self.find_biproducts(produced_components)
+            if bicomponents:
+                print("Bi-components: %s" % bicomponents)
 
-        return produced_products
+        return produced_components
 
     def find_biproducts(
-        self, final_products: List[ProductBase]
-    ) -> Iterable[ProductBase]:
-        counter = {f: 0 for f in final_products}
+        self, final_components: List[ComponentBase]
+    ) -> Iterable[ComponentBase]:
+        counter = {f: 0 for f in final_components}
         actual_products = []
         for producer_class in self.get_producers():
-            actual_products.extend(producer_class.products)
-            for product in final_products:
-                if product.__class__ in producer_class.required_component:
+
+            if hasattr(producer_class, "products"):
+                actual_products.extend(producer_class.products)
+
+            for product in final_components:
+                if product.__class__ in producer_class.required_components:
                     counter[product] += 1
 
         return [
