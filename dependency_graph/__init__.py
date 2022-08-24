@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Iterable, List, Type
@@ -178,17 +179,35 @@ class DependencyGraph:
         """ """
         produced_components = []
         for producer_class in self.get_producers():
+            start_time = time.time()
+            if self.verbose:
+                print("\nProcessing .... %s" % producer_class)
             producer = producer_class()  # type: ignore
             if not producer.can_produce():
+                if self.verbose:
+                    print("Cannot run.")
                 continue
 
-            produced_components.extend(
-                producer._internal_produce(
-                    produced_components,
-                    *args,
-                    **kwargs,
+            try:
+                result = list(
+                    producer._internal_produce(
+                        produced_components,
+                        *args,
+                        **kwargs,
+                    )
                 )
-            )
+                produced_components.extend(result)
+
+                if self.verbose:
+                    print(
+                        "Produced %s components in %s seconds"
+                        % (len(result), time.time() - start_time)
+                    )
+
+            except RequirementNotMetException as ex:
+                if self.verbose:
+                    print("%s did not recieve required components" % producer_class)
+                    raise ex
 
         if self.verbose:
             print("Produced: %s" % produced_components)
