@@ -210,10 +210,15 @@ class DependencyGraph:
                     raise ex
 
         if self.verbose:
-            print("Produced: %s" % produced_components)
-            bicomponents = self.find_biproducts(produced_components)
-            if bicomponents:
-                print("Bi-components: %s" % bicomponents)
+            print("Produced a total of %s components." % len(list(produced_components)))
+            try:
+                bicomponents = self.find_biproducts(produced_components)
+                if bicomponents:
+                    print("Bi-components: %s" % bicomponents)
+            except TypeError:
+                print(
+                    "Error occurred while looking for bi-products. Some components might not be hashable."
+                )
 
         return produced_components
 
